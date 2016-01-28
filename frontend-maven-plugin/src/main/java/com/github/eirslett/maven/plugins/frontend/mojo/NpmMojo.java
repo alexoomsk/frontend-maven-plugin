@@ -22,6 +22,9 @@ public final class NpmMojo extends AbstractFrontendMojo {
     @Parameter(defaultValue = "install", property = "frontend.npm.arguments", required = false)
     private String arguments;
 
+    @Parameter(defaultValue = "false", property = "frontend.npm.skipMavenProxy", required = false)
+    private Boolean skipMavenProxy;
+
     @Parameter(property = "session", defaultValue = "${session}", readonly = true)
     private MavenSession session;
 
@@ -46,7 +49,8 @@ public final class NpmMojo extends AbstractFrontendMojo {
     public void execute(FrontendPluginFactory factory) throws TaskRunnerException {
         File packageJson = new File(workingDirectory, "package.json");
         if (buildContext == null || buildContext.hasDelta(packageJson) || !buildContext.isIncremental()) {
-            ProxyConfig proxyConfig = MojoUtils.getProxyConfig(session, decrypter);
+
+            ProxyConfig proxyConfig = MojoUtils.getProxyConfig(!skipMavenProxy ? session : null, decrypter);
             factory.getNpmRunner(proxyConfig).execute(arguments, environmentVariables);
         } else {
             getLog().info("Skipping npm install as package.json unchanged");
